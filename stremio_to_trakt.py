@@ -21,6 +21,7 @@ import re
 import sys
 from datetime import datetime, timezone
 from html.parser import HTMLParser
+from pathlib import Path
 from typing import TextIO
 from urllib.parse import unquote
 
@@ -38,7 +39,7 @@ class StremioHTMLParser(HTMLParser):
         self.current_text_field = None
 
     def handle_starttag(self, tag, attrs):
-        attrs_dict = dict(attrs)
+        attrs_dict = {key: value or '' for key, value in attrs}
 
         # Look for meta item containers (the <a> tags with media info)
         if tag == 'a' and 'class' in attrs_dict:
@@ -96,9 +97,9 @@ class StremioHTMLParser(HTMLParser):
             classes = attrs_dict.get('class', '')
             if 'progress-bar' in classes.lower() or 'progressbar' in classes.lower():
                 style = attrs_dict.get('style', '')
-                progress_match = re.search(r'width:\s*([\d.]+)%', style)
+                progress_match = re.search(r'width:\s*(\d+(?:\.\d+)?|\.\d+)%', style)
                 if progress_match:
-                    self.current_item['progress'] = float(progress_match.group(1))
+                    self.current_item['progress'] = min(100, float(progress_match.group(1)))
 
         # Extract poster image from background-image style
         if self.current_item and tag == 'div' and 'class' in attrs_dict:
@@ -332,8 +333,8 @@ def main() -> None:
     )
     parser.add_argument(
         '-o', '--output',
-        type=argparse.FileType('w'),
-        default=sys.stdout,
+        type=Path,
+        default=None,
         help='Output JSON file (default: stdout)',
     )
     parser.add_argument(
@@ -410,12 +411,19 @@ def main() -> None:
     output = format_for_trakt_import(trakt_items)
 
     # Write output
-    json.dump(output, args.output, indent=2)
-    args.output.write('\n')
+    serialized = json.dumps(output, indent=2) + '\n'
+    if args.output is None:
+        sys.stdout.write(serialized)
+    else:
+        try:
+            with args.output.open('x', encoding='utf-8') as handle:
+                handle.write(serialized)
+        except FileExistsError:
+            parser.error('Output already exists. Choose a new filename.')
 
     print(f"Exported {len(output)} items to Trakt format", file=sys.stderr)
-    if args.output != sys.stdout:
-        print(f"Output written to: {args.output.name}", file=sys.stderr)
+    if args.output is not None:
+        print(f"Output written to: {args.output}", file=sys.stderr)
 
 
 if __name__ == '__main__':
