@@ -1,5 +1,7 @@
 # Media Export Converter
 
+[![Tests](https://github.com/Scottimus/Media-Export-Converter/actions/workflows/tests.yml/badge.svg)](https://github.com/Scottimus/Media-Export-Converter/actions/workflows/tests.yml)
+
 Convert a saved Stremio library HTML page into a Trakt-oriented JSON export. The parser reads movie IDs, episode numbers, watched markers, and progress. It runs locally using Python's standard library.
 
 ```sh
