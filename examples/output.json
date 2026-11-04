@@ -1,0 +1,19 @@
+[
+  {
+    "imdb_id": "tt0000001",
+    "type": "movie",
+    "title": "Sample Film",
+    "watched_at": "unknown",
+    "_href": "#/detail/movie/tt0000001"
+  },
+  {
+    "imdb_id": "tt0000002",
+    "type": "episode",
+    "title": "Sample Series",
+    "watched_at": "unknown",
+    "season": 2,
+    "episode": 3,
+    "_href": "#/detail/series/tt0000002:2:3",
+    "_progress": 95.0
+  }
+]
